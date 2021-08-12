@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>{{title}}</title>
+  </head>
+  <body>
+    <section class="navbar">
+      <section class="navTitle">Code Bloggers</section>
+    </section>
+
+    <section class="pagecontainer">
+      <ul class="topics_list">
+        {{#each topics}}
+          <li class="topic">
+              <section class="viewTopic">{{this}}</section>
+          </li>
+        {{/each}}
+      </ul>
+    </section>
+
+  </body>
+</html>
