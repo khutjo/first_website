@@ -1,17 +1,19 @@
 <html>
   <head>
     <title>{{title}}</title>
+    <link rel="stylesheet" href="style.css" />
+
   </head>
   <body>
     <section class="navbar">
-      <section class="navTitle">Code Bloggers</section>
+      <section class="navTitle">Dashboard</section>
     </section>
 
     <section class="pagecontainer">
       <ul class="topics_list">
         {{#each topics}}
           <li class="topic">
-              <section class="viewTopic">{{this}}</section>
+              <section class="topicTitle">{{this}}</section>
           </li>
         {{/each}}
       </ul>
