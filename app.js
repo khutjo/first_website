@@ -1,4 +1,7 @@
 var createError = require("http-errors");
+var azure = require('azure-storage');
+
+var queueSvc = azure.createQueueService();
 var express = require("express");
 
 var app = express();
