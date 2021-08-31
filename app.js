@@ -1,4 +1,5 @@
 var createError = require("http-errors");
+require('dotenv').load();
 var azure = require('azure-storage');
 
 var queueSvc = azure.createQueueService();
