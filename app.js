@@ -26,42 +26,16 @@ app.get("/" , (req, res) => {
     });
 
 app.get("/add" , (req, res) => {
-        queueSvc.createQueueIfNotExists('messages', function(error, results, response){
-    if(!error){
-        queueSvc.createMessage('messages', req.query.name, function(error, results, response){
-            if(!error){
-                res.render("index", 
-                { title: "Protected",
-                topics: ['hello', 'khutjo', 'job', 'done']
-             });
-            }else
-            res.render("index", 
-            { title: "Protected",
-            topics: ['hello', 'khutjo', 'didnt', 'work']
-         });
-          });
-    }
-  });
+    res.render("index", 
+    { title: "Protected",
+    topics: ['hello', 'khutjo', 'whats', 'up']
+ });
 })
 app.get("/get" , (req, res) => {
-    queueSvc.getMessages('messages', function(error, results, response){
-        if(!error){
-            console.log(results[0].messageText)
-                res.render("index", 
-                { title: "Protected",
-                topics: ['hello', 'khutjo', 'this', 'is', 'the', 'output',results[0].messageText]})
-          var message = results[0];
-          queueSvc.deleteMessage('messages', message.messageId, message.popReceipt, function(error, response){
-            if(!error){
-              //message deleted
-            }
-          });
-        }else
-        res.render("index", 
-        { title: "Protected",
-        topics: ['hello', 'khutjo', 'didnt', 'work']
-     });
-      });
+    res.render("index", 
+    { title: "Protected",
+    topics: ['hello', 'khutjo', 'whats', 'up']
+ });
 })
 
 app.listen(port, () => {
