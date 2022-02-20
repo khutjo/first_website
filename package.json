@@ -1,23 +1,14 @@
 {
-  "name": "first_website",
+  "name": "azure_api",
   "version": "1.0.0",
-  "description": "",
+  "description": "azure web api",
   "main": "index.js",
   "scripts": {
-    "start": "node app",
-    "dev": "nodemon app"
+    "test": "node index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "]"
-  },
-  "author": "khutjo",
+  "author": "khutjo maputla",
   "license": "ISC",
   "dependencies": {
-    "azure-storage": "^2.10.4",
-    "dotenv": "^10.0.0",
-    "express": "^4.17.1",
-    "hbs": "^4.1.2",
-    "nodemon": "^2.0.12"
+    "express": "^4.17.3"
   }
 }
