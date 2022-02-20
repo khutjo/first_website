@@ -10,7 +10,7 @@ app.get('/', function(req, res) {
   });
 
 app.post('/posttest', function(req, res) {
-  res.send(req.body)
+  res.send('i got this data ======> '+ req.body + '<======')
 });
   
 app.get('/home', function(req, res) {
