@@ -1,4 +1,5 @@
 var express = require('express');
+const port = process.env.PORT || 3000
 
 var app = express();
 app.use(express.json());
@@ -12,5 +13,5 @@ app.get('/home', function(req, res) {
     res.send('hello world!')
   });
 
-app.listen(8080, console.log("Server running on port: 8080"))
+app.listen(port, console.log("Server running on port: "+port))
 module.exports = app;
