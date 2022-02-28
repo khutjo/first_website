@@ -14,7 +14,13 @@ app.post('/posttest', function(req, res) {
     firstName : "John",
     lastName  : "Doe",
     age     : 50,
-    eyeColor  : "blue"
+    eyeColor  : "blue",
+    extra : [
+      {exfirstName  : "recardo", exlastName : "de vos"},
+      {exfirstName  : "lebo", exlastName : "bumpy"},
+      {exfirstName  : "kgale", exlastName : "brandon"},
+      {exfirstName  : "OB", exlastName : "GANG"}
+    ]
   };
   let output = JSON.stringify(person)
   res.send(output)
