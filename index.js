@@ -1,6 +1,8 @@
 require("dotenv").config();
 var express = require('express');
 const Connect = require("./database/dbconnection");
+const rescompile = require("./src/response");
+const sendrequest = require('./src/sendrequest');
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 3000
 
@@ -11,7 +13,6 @@ app.use(express.urlencoded({ extended: false }));
 
 const checkToken = (req, res, next) => {
   const header = req.headers['authorization'];
-  console.log('shit');
   if(typeof header !== 'undefined') {
       const bearer = header.split(' ');
       const token = bearer[1];
@@ -19,16 +20,20 @@ const checkToken = (req, res, next) => {
       req.token = token;
       jwt.verify(req.token, process.env.TOKEN_KEY, (err, authorizedData) => {
           if(err)
-              res.sendStatus(403);
-          else
+          rescompile.CompileError(res, 403, "invalid JWT sent");
+          else{
+            req.username = authorizedData.user_id
             next();
+          }
       })
-  } else {
-      res.sendStatus(403)
-  }
+  } else 
+    rescompile.CompileError(res, 403, "no JWT sent");
 }
 
-
+app.post('/postplain', function(req, res) {
+  console.log(req)
+  rescompile.CompileError(res, 403, "no JWT sent");
+});
 
 
 app.post('/login', function(req, res) {
@@ -43,9 +48,10 @@ app.get('/connect', checkToken, function(req, res) {
 });
 
 app.post('/send', checkToken, function(req, res) {
-
-  let output = JSON.stringify(person)
-  res.send(output)
+  let connect = new Connect();
+  connect.getsenddata(req, res, '/send');
+  // sendrequest.send(req, res).catch(err => {
+  //   console.log(err)});
 });
 
 app.listen(port, console.log("Server running on port: "+port))
