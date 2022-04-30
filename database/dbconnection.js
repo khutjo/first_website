@@ -18,21 +18,44 @@ const client = new CosmosClient(options)
 
 class DatabaseConnection {
 
-    constructor() {
+    constructor(response) {
         try {
             this.client = new CosmosClient(options)
         } catch (e) {
             this.error = true;
-            this.errormessage = message;
+            rescompile.CompileError(response, 500, 'error seting up ' + message);
         }
         this.error = false;
+    }
+
+    async setrefreshtoken(response, useritem) {
+        const token = jwt.sign(
+            { user_id: results[0].id},
+                process.env.TOKEN_KEY,
+                {expiresIn: "2h"}
+            );
+        const refeshtoken = jwt.sign(
+            { user_id: useritem.id},
+                process.env.TOKEN_KEY,
+                {expiresIn: "7d"}
+            );
+        useritem.RefreshToken = refeshtoken
+
+        const { resource: results } = await container
+        .item(useritem.id, useritem.partitionKey)
+        .replace(useritem);
+
+        if (results == 1)
+            response.send(rescompile.CompileSuccess({TOKEN: token, REFRESHTOKEN: refeshtoken}));
+        else 
+            rescompile.CompileError(response, 500, 'error generating tokens ' + error);
     }
 
     async getlogin(request, response) {
         let querySpec = null;
         if (request && request.body && request.body.USERNAME && request.body.PASSWORD)
             querySpec = {
-                query: 'SELECT r.id, r.password FROM root r WHERE r.id = @id and r.confirmed = "YES"',
+                query: 'SELECT * FROM root r WHERE r.id = @id and r.confirmed = "YES"',
                 parameters: 
                 [
                     {
@@ -43,7 +66,7 @@ class DatabaseConnection {
             }
         else {
             rescompile.CompileError(response, 422, "No USERNAME/PASSWORD post var Found in request");
-            return;
+            return null;
         }
 
         const { resources: results } = await client
@@ -54,28 +77,28 @@ class DatabaseConnection {
 
         if (results.length != 1){
             rescompile.CompileError(response, 403, "valid user not found " + results.length);
-            return;
+            return null;
         }
 
         bcrypt.compare(request.body.PASSWORD, results[0].password, function(err, isMatch) {
             if (err) {
                 rescompile.CompileError(response, 403, "bcrypt error \n" + err);
+                return null;
             } else if (!isMatch) {
                 rescompile.CompileError(response, 403, "invalid password");
+                return null;
             } else {
-                const token = jwt.sign(
-                { user_id: results[0].id},
-                    process.env.TOKEN_KEY,
-                    {expiresIn: "2h"}
-                );
-                response.send(rescompile.CompileSuccess({TOKEN: token}));
+                console.log(results)
+                return results[0];
+                // setrefreshtoken(response, results)
+                // .catch(error => {rescompile.CompileError(response, 500, 'error generating tokens ' + error)});
+                // })
+                
             }
         })
-        
-
     }
 
-    async getactions(request, response, route) {
+    async getactions(request, response) {
         const querySpec = {
             query: 'SELECT r.actions FROM root r WHERE r.id = @id',
             parameters: [
@@ -100,7 +123,7 @@ class DatabaseConnection {
         response.send(rescompile.CompileSuccess(results[0]));
     }
 
-    async getsendID(action, scope) {
+    async getsendID(response, action, scope) {
         const querySpec = {
             query: 'SELECT r.send_id FROM root r WHERE r.id = @id and r.partitionKey = @scope',
             parameters: [
@@ -121,15 +144,18 @@ class DatabaseConnection {
         .items.query(querySpec)
         .fetchNext()
         
-        if (results.length != 1)
+        if (results.length != 1){
+            rescompile.CompileError(response, 500, 'error runing request send id is null')
             return null
-        
+        }
         return results[0]
 
     }
 
-    async getsenddata(request) {
-        const querySpec = {
+    async getsenddata(request, response) {
+        let querySpec = null;
+        if (request && request.body && request.body.ACTION && request.body.SCOPE)
+        querySpec = {
             query: 'SELECT c.id , c.scope FROM root r JOIN c IN r.actions WHERE r.id = @id and c.id = @action and c.scope = @scope',
             parameters: [
               {
@@ -146,6 +172,10 @@ class DatabaseConnection {
               }
             ]
           }
+          else {
+            rescompile.CompileError(response, 500, "No ACTION/SCOPE post var Found in request");
+            return null;
+        }
 
         const { resources: results } = await client
         .database(DatabaseCreds.database)
@@ -155,6 +185,7 @@ class DatabaseConnection {
           
         console.log(results[0])
         if (results.length != 1){
+            rescompile.CompileError(response, 500, 'error runing request send data is null')
             return null;
         }
         return results[0];
@@ -166,43 +197,34 @@ class DatabaseConnection {
 module.exports = function() {
 
     this.getlogin = function(request, response) {
-        let con = new DatabaseConnection();
+        let con = new DatabaseConnection(response);
         if (!con.error)
             con.getlogin(request, response)
+            .then(result => console.log(result))
             .catch(error => {rescompile.CompileError(response, 500, 'error runing request ' + error)});
-        else
-            rescompile.CompileError(response, 500, 'error seting up ' + con.errormessage);
     }
 
     this.getactions = function(request, response) {
-        let con = new DatabaseConnection();
+        let con = new DatabaseConnection(response);
         if (!con.error)
             con.getactions(request, response)
             .catch(error => {rescompile.CompileError(response, 500, 'error runing request ' + error)});
-        else
-            rescompile.CompileError(response, 500, 'error seting up ' + con.errormessage);
     }
 
     this.getsenddata = function(request, response) {
-        let con = new DatabaseConnection();
+        let con = new DatabaseConnection(response);
         if (!con.error)
-            con.getsenddata(request)
+            con.getsenddata(request, response)
             .then( senddataresults => { 
                 if (senddataresults != null)
-                    con.getsendID(senddataresults.id, senddataresults.scope)
+                    con.getsendID(response, senddataresults.id, senddataresults.scope)
                     .then(sendID => {
                         if (sendID != null)
                             sendrequest.send(request, response, sendID).
                             catch(error => {rescompile.CompileError(response, 500, 'error runing request ' + error, request.originalUrl)})
-                        else
-                            rescompile.CompileError(response, 500, 'error runing request send id is null')
                     })
                     .catch(error => {rescompile.CompileError(response, 500, 'error runing request ' + error)})
-                else
-                    rescompile.CompileError(response, 500, 'error runing request send data is null')
                 })
             .catch(error => {rescompile.CompileError(response, 500, 'error runing request ' + error)});
-        else
-            rescompile.CompileError(response, 500, 'error seting up ' + con.errormessage);
     }
 }
