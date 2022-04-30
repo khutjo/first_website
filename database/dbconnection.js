@@ -30,7 +30,7 @@ class DatabaseConnection {
 
     async setrefreshtoken(response, useritem) {
         const token = jwt.sign(
-            { user_id: results[0].id},
+            { user_id: useritem.id},
                 process.env.TOKEN_KEY,
                 {expiresIn: "2h"}
             );
@@ -41,14 +41,16 @@ class DatabaseConnection {
             );
         useritem.RefreshToken = refeshtoken
 
-        const { resource: results } = await container
+        const { resource: results } = await client
+        .database(DatabaseCreds.database)
+        .container(DatabaseCreds.container.user.id)
         .item(useritem.id, useritem.partitionKey)
         .replace(useritem);
 
-        if (results == 1)
+        if (results.RefreshToken == refeshtoken)
             response.send(rescompile.CompileSuccess({TOKEN: token, REFRESHTOKEN: refeshtoken}));
         else 
-            rescompile.CompileError(response, 500, 'error generating tokens ' + error);
+            rescompile.CompileError(response, 500, 'error generating saving tokens');
     }
 
     async getlogin(request, response) {
@@ -79,23 +81,51 @@ class DatabaseConnection {
             rescompile.CompileError(response, 403, "valid user not found " + results.length);
             return null;
         }
+        
 
-        bcrypt.compare(request.body.PASSWORD, results[0].password, function(err, isMatch) {
-            if (err) {
-                rescompile.CompileError(response, 403, "bcrypt error \n" + err);
-                return null;
-            } else if (!isMatch) {
+        if (bcrypt.compareSync(request.body.PASSWORD, results[0].password)){
+            this.setrefreshtoken(response, results[0])
+            .catch(error => {
+                rescompile.CompileError(response, 500, 'error generating tokens ' + error)
+            });
+        }
+        else {
                 rescompile.CompileError(response, 403, "invalid password");
-                return null;
-            } else {
-                console.log(results)
-                return results[0];
-                // setrefreshtoken(response, results)
-                // .catch(error => {rescompile.CompileError(response, 500, 'error generating tokens ' + error)});
-                // })
-                
-            }
-        })
+                return null;    
+        } 
+    }
+
+    async getrefresh(request, response) {
+        const querySpec = {
+            query: 'SELECT * FROM root r WHERE r.id = @id and r.RefreshToken = @token and r.confirmed = "YES"',
+            parameters: 
+            [
+                {
+                    name: '@id',
+                    value: request.username
+                },
+                {
+                    name: '@token',
+                    value: request.token
+                }
+            ]
+        }
+
+        const { resources: results } = await client
+        .database(DatabaseCreds.database)
+        .container(DatabaseCreds.container.user.id)
+        .items.query(querySpec)
+        .fetchNext()
+
+        if (results.length != 1){
+            rescompile.CompileError(response, 403, "invalid JWT sent " + results.length);
+            return null;
+        }
+
+        this.setrefreshtoken(response, results[0])
+            .catch(error => {
+                rescompile.CompileError(response, 500, 'error generating tokens ' + error)
+            });
     }
 
     async getactions(request, response) {
@@ -200,7 +230,13 @@ module.exports = function() {
         let con = new DatabaseConnection(response);
         if (!con.error)
             con.getlogin(request, response)
-            .then(result => console.log(result))
+            .catch(error => {rescompile.CompileError(response, 500, 'error runing request ' + error)});
+    }
+
+    this.getrefresh = function(request, response) {
+        let con = new DatabaseConnection(response);
+        if (!con.error)
+            con.getrefresh(request, response)
             .catch(error => {rescompile.CompileError(response, 500, 'error runing request ' + error)});
     }
 

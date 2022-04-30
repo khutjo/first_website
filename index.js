@@ -40,6 +40,11 @@ app.post('/login', function(req, res) {
   let connect = new Connect();
   connect.getlogin(req, res, '/login');
 });
+
+app.post('/refresh', checkToken, function(req, res) {
+  let connect = new Connect();
+  connect.getrefresh(req, res, '/login');
+});
   
 
 app.get('/connect', checkToken, function(req, res) {
