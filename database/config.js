@@ -2,8 +2,8 @@ require("dotenv").config();
 
 const DatabaseCreds = {}
 
-    DatabaseCreds.endpoint = process.env.DB_END_POINT
-    DatabaseCreds.key = process.env.COSMO_DB_KEY
+    DatabaseCreds.endpoint = process.env.AZURE_COSMOS_ENDPOINT
+    DatabaseCreds.key = process.env.AZURE_COSMOS_MASTER_KEY
     DatabaseCreds.userAgentSuffix = 'CosmosDBhomealarm'
     DatabaseCreds.database = 'homealarm'
 
