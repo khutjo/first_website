@@ -17,6 +17,6 @@ module.exports =  {
             timestamp: new Date().toISOString(),
             data: data
         }
-        return (errorjson);
+        return (JSON.stringify(errorjson));
     }
 }
