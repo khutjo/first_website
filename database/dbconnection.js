@@ -145,7 +145,6 @@ class DatabaseConnection {
           .items.query(querySpec)
           .fetchNext()
           
-            console.log(results[0])
             if (results.length != 1){
                 rescompile.CompileError(response, 500, "no config found " + results.length);
                 return;
@@ -213,7 +212,6 @@ class DatabaseConnection {
         .items.query(querySpec)
         .fetchNext()
           
-        console.log(results[0])
         if (results.length != 1){
             rescompile.CompileError(response, 500, 'error runing request send data is null')
             return null;

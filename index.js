@@ -55,51 +55,7 @@ app.get('/connect', checkToken, function(req, res) {
 app.post('/send', checkToken, function(req, res) {
   let connect = new Connect();
   connect.getsenddata(req, res, '/send');
-  // sendrequest.send(req, res).catch(err => {
-  //   console.log(err)});
 });
 
 app.listen(port, console.log("Server running on port: "+port))
 module.exports = app;
-
-
-
-
-
-
-// const bcrypt = require("bcryptjs")
-
-// const password = "khutjo@26"
-// const saltRounds = 10
-
-// bcrypt.genSalt(saltRounds, function (err, salt) {
-//   if (err) {
-//     throw err
-//   } else {
-//     bcrypt.hash(password, salt, function(err, hash) {
-//       if (err) {
-//         throw err
-//       } else {
-//         console.log(hash)
-//         //$2a$10$FEBywZh8u9M0Cec/0mWep.1kXrwKeiWDba6tdKvDfEBjyePJnDT7K
-//       }
-//     })
-//   }
-// })
-
-
-
-
-
-// const passwordEnteredByUser = "khutjo@26"
-// const hash = "$2a$10$eLWv2Dd3bwgrIqoH5J8ZXuux/.uUXCV3dhs/9Za8ikjxspgAagBru"
-
-// bcrypt.compare(passwordEnteredByUser, hash, function(err, isMatch) {
-//   if (err) {
-//     throw err
-//   } else if (!isMatch) {
-//     console.log("Password doesn't match!")
-//   } else {
-//     console.log("Password matches!")
-//   }
-// })
