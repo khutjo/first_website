@@ -50,7 +50,7 @@ class DatabaseConnection {
         if (results.RefreshToken == refeshtoken)
             response.send(rescompile.CompileSuccess({TOKEN: token, REFRESHTOKEN: refeshtoken}));
         else 
-            rescompile.CompileError(response, 500, 'error generating saving tokens');
+            rescompile.CompileError(response, 403, 'error generating saving tokens');
     }
 
     async getlogin(request, response) {
@@ -118,7 +118,7 @@ class DatabaseConnection {
         .fetchNext()
 
         if (results.length != 1){
-            rescompile.CompileError(response, 403, "invalid JWT sent " + results.length);
+            rescompile.CompileError(response, 401, "invalid JWT sent " + results.length);
             return null;
         }
 

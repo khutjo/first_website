@@ -20,7 +20,7 @@ const checkToken = (req, res, next) => {
       req.token = token;
       jwt.verify(req.token, process.env.TOKEN_KEY, (err, authorizedData) => {
           if(err)
-          rescompile.CompileError(res, 403, "invalid JWT sent");
+          rescompile.CompileError(res, 401, "invalid JWT sent");
           else{
             req.username = authorizedData.user_id
             next();
